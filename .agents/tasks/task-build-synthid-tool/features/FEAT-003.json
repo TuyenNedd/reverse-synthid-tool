@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "FastAPI backend with async processing endpoints for detect and remove. Architecture supports future queue-based scaling (async job pattern with job IDs and status polling).",
+  "status": "pending",
+  "steps": [
+    "Create backend/ directory with backend/__init__.py",
+    "Create backend/app.py - FastAPI application with CORS middleware (allow all origins for dev). Include lifespan handler that pre-loads codebooks on startup for fast first-request response.",
+    "Create backend/routes/__init__.py and backend/routes/detect.py - POST /api/detect endpoint: accepts multipart file upload, runs detection, returns JSON with is_watermarked, confidence, phase_match, details.",
+    "Create backend/routes/remove.py - POST /api/remove endpoint: accepts multipart file upload + mode (fast/full) + optional strength + optional model. For async pattern: returns a job_id immediately. Also provide POST /api/remove/sync for simple synchronous processing that returns the cleaned image directly as a file download.",
+    "Create backend/routes/jobs.py - GET /api/jobs/{job_id} for polling job status (pending/processing/completed/failed). GET /api/jobs/{job_id}/result to download the cleaned image. This is the queue-ready pattern for future scaling.",
+    "Create backend/services.py - Business logic layer: run_detection(image_bytes) and run_removal(image_bytes, mode, strength, model). These call the core synthid_tool package. Designed so they can later be replaced by a task queue (Celery/RQ) submission.",
+    "Create backend/job_store.py - In-memory job store (dict-based) implementing the async job pattern. Stores job status, result path, timestamps. Interface: create_job(), update_job(), get_job(). Easy to swap with Redis/DB later.",
+    "Create backend/config.py - Backend configuration: host, port, artifacts paths, max upload size, allowed extensions.",
+    "Add uvicorn startup: entry point 'synthid-server' in pyproject.toml that runs 'uvicorn backend.app:app --host 0.0.0.0 --port 8000'",
+    "Create tests/test_backend.py - Test API endpoints using httpx.AsyncClient and FastAPI's TestClient: test /api/detect with a dummy PNG, test /api/remove/sync with mode=fast, test /api/jobs returns 404 for unknown job."
+  ],
+  "acceptance_criteria": [
+    "POST /api/detect with an image file returns JSON with is_watermarked and confidence fields",
+    "POST /api/remove/sync with mode=fast returns a PNG image file",
+    "POST /api/remove with mode=full returns a job_id for async tracking",
+    "GET /api/jobs/{job_id} returns job status JSON",
+    "The backend starts without errors: uvicorn backend.app:app runs and /docs shows Swagger UI",
+    "pytest tests/test_backend.py passes"
+  ],
+  "verification": [
+    "cd /projects/sandbox/reverse-synthid-tool && pip install -e . && python -c \"from backend.app import app; print('FastAPI app loaded OK')\"",
+    "cd /projects/sandbox/reverse-synthid-tool && pytest tests/test_backend.py -v"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

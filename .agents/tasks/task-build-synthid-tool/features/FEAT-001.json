@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Core Python library - wrap detect + remove logic from the source repo into a clean, importable Python package with proper packaging (pyproject.toml). Includes the core engine that both CLI and web backend will use.",
+  "status": "in_progress",
+  "steps": [
+    "Create project root structure: pyproject.toml with package metadata, dependencies (numpy, scipy, opencv-python, PyWavelets, scikit-learn, Pillow, typer, fastapi, uvicorn, python-multipart), optional deps group [full] for torch/diffusers/safetensors/accelerate. Use src layout with synthid_tool/ package.",
+    "Create src/synthid_tool/__init__.py exporting the public API: detect(), remove_fast(), remove_full(), DetectionResult, RemovalResult",
+    "Create src/synthid_tool/detector.py - Wrap RobustSynthIDExtractor from source. Adapt the detect() and detect_array() methods. Accept image path or numpy array. Return a clean DetectionResult dataclass with: is_watermarked, confidence, phase_match, details dict. Load codebook from artifacts/codebook/robust_codebook.pkl by default.",
+    "Create src/synthid_tool/remover.py - Two public functions: remove_fast(image, codebook_path=None, strength='aggressive') wrapping V3 SpectralCodebook bypass, and remove_full(image, codebook_path=None, strength='final', model=None) wrapping V4 7-stage pipeline. Both return RemovalResult dataclass with: success, cleaned_image (numpy uint8), psnr, ssim, stages_applied, mode ('fast'|'full').",
+    "Create src/synthid_tool/models.py - Define shared dataclasses: DetectionResult, RemovalResult, JobStatus (for future queue-based scaling), ProcessingMode enum (FAST, FULL)",
+    "Create src/synthid_tool/codebook.py - Thin wrapper around SpectralCodebook (V3) and SpectralCodebookV4. Handles lazy loading, path resolution (check artifacts/ dir relative to package, or user-specified path). Provide get_v3_codebook() and get_v4_codebook() factory functions.",
+    "Copy the source extraction modules into src/synthid_tool/_engine/ directory (robust_extractor.py, synthid_bypass.py, synthid_bypass_v4.py, vae_regen.py, watermark_remover.py) - these are the internal engine files. Fix their relative imports to work within the package.",
+    "Copy artifacts directory from /projects/sandbox/reverse-SynthID/artifacts/ to /projects/sandbox/reverse-synthid-tool/artifacts/ (the .npz and .pkl codebook files needed at runtime)",
+    "Create src/synthid_tool/config.py - Central configuration: default paths to artifacts, default model name, default strengths. Use environment variables for overrides (SYNTHID_ARTIFACTS_DIR, SYNTHID_DEFAULT_MODEL).",
+    "Create tests/test_core.py - Basic unit tests: test that detect returns DetectionResult, test that remove_fast returns RemovalResult, test codebook loading. Use a small synthetic test image (numpy zeros/random) to verify the pipeline runs without errors."
+  ],
+  "acceptance_criteria": [
+    "Running 'pip install -e .' from project root installs the synthid_tool package without errors",
+    "from synthid_tool import detect, remove_fast, remove_full succeeds",
+    "detect() accepts an image path string and returns a DetectionResult with is_watermarked bool and confidence float",
+    "remove_fast() accepts an image numpy array and returns RemovalResult with cleaned_image numpy array",
+    "remove_full() accepts an image numpy array and returns RemovalResult with cleaned_image, stages_applied list",
+    "pytest tests/test_core.py passes"
+  ],
+  "verification": [
+    "pip install -e /projects/sandbox/reverse-synthid-tool && python -c \"from synthid_tool import detect, remove_fast, remove_full; print('OK')\"",
+    "cd /projects/sandbox/reverse-synthid-tool && pytest tests/test_core.py -v"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

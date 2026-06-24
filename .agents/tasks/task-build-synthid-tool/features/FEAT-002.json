@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "CLI tool using Typer with 'detect' and 'remove' commands. The 'remove' command supports --mode fast/full flag.",
+  "status": "pending",
+  "steps": [
+    "Create src/synthid_tool/cli.py - Main CLI module using Typer. App with two commands: 'detect' and 'remove'.",
+    "Implement 'detect' command: accepts image path (positional arg), optional --codebook path, optional --output json/text format. Loads image, runs detector, prints results (confidence, is_watermarked, phase_match).",
+    "Implement 'remove' command: accepts input image path and output path (positional args), --mode flag (fast/full, default fast), --strength (for fast: gentle/moderate/aggressive, for full: final/nuke), --model (for full mode, default gemini-3.1-flash-image-preview), --codebook path. Runs the appropriate pipeline, saves output, prints summary (PSNR, stages applied, time taken).",
+    "Add a console entry point in pyproject.toml: [project.scripts] synthid = 'synthid_tool.cli:app'",
+    "Add rich/colorful output using Typer's built-in rich integration - show progress spinner during processing, colored confidence scores (green = not watermarked, red = watermarked)",
+    "Create tests/test_cli.py - Test CLI invocations using typer.testing.CliRunner: test 'synthid detect --help', test 'synthid remove --help', test detect on a dummy image, test remove on a dummy image."
+  ],
+  "acceptance_criteria": [
+    "Running 'synthid --help' shows the two available commands: detect and remove",
+    "Running 'synthid detect <image_path>' prints detection results to stdout",
+    "Running 'synthid remove <input> <output> --mode fast' creates an output image file",
+    "Running 'synthid remove <input> <output> --mode full' creates an output image file using the 7-stage V4 pipeline",
+    "pytest tests/test_cli.py passes"
+  ],
+  "verification": [
+    "cd /projects/sandbox/reverse-synthid-tool && pip install -e . && synthid --help",
+    "cd /projects/sandbox/reverse-synthid-tool && pytest tests/test_cli.py -v"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
