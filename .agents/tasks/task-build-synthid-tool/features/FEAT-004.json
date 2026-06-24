@@ -1,0 +1,33 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "React frontend with Vite - drag & drop image upload, detection results display, and watermark removal with mode selection (fast/full). Clean modern UI.",
+  "status": "pending",
+  "steps": [
+    "Initialize Vite React+TypeScript project in frontend/ directory: npm create vite@latest frontend -- --template react-ts. Install dependencies: axios, react-dropzone, lucide-react (icons), tailwindcss + postcss + autoprefixer for styling.",
+    "Configure Tailwind CSS: create tailwind.config.js and postcss.config.js, update index.css with Tailwind directives.",
+    "Create frontend/src/api/client.ts - API client module with functions: detectWatermark(file: File), removeWatermark(file: File, mode: 'fast'|'full', strength?: string), getJobStatus(jobId: string), getJobResult(jobId: string). Base URL configurable via env var VITE_API_URL (default http://localhost:8000).",
+    "Create frontend/src/components/ImageDropzone.tsx - Drag & drop zone component using react-dropzone. Shows preview of dropped image. Accepts PNG/JPG/WebP. Displays file name and size after drop.",
+    "Create frontend/src/components/DetectionResult.tsx - Displays detection results: watermark status (colored badge), confidence score (progress bar), phase match, detailed metrics in collapsible section.",
+    "Create frontend/src/components/RemovalPanel.tsx - Mode selector (fast/full radio buttons with descriptions: fast = 'Spectral subtraction, PSNR 43dB+, seconds', full = '7-stage pipeline, maximum removal, slower'). Strength selector. Remove button. Shows progress/status during processing. Displays before/after comparison when done.",
+    "Create frontend/src/components/ImageComparison.tsx - Side-by-side or slider comparison of original vs cleaned image. Shows PSNR and stages applied.",
+    "Create frontend/src/App.tsx - Main app layout: header with tool name, main content area with ImageDropzone, action buttons (Detect / Remove), results panels. State management with useState/useReducer for: uploaded file, detection result, removal result, processing status, selected mode.",
+    "Create frontend/src/components/Header.tsx - Simple header with app title 'SynthID Tool' and brief description.",
+    "Configure Vite proxy in vite.config.ts: proxy /api requests to http://localhost:8000 during development.",
+    "Add npm scripts in package.json: dev (vite), build (vite build), preview (vite preview)."
+  ],
+  "acceptance_criteria": [
+    "cd frontend && npm install completes without errors",
+    "cd frontend && npm run build produces a dist/ directory with index.html",
+    "The UI has a drag-and-drop zone for image upload",
+    "The UI has Detect and Remove buttons with mode selection (fast/full)",
+    "The UI displays detection results (watermarked status, confidence) after detection",
+    "The UI displays before/after image comparison after removal",
+    "Vite dev server proxy is configured to forward /api to backend"
+  ],
+  "verification": [
+    "cd /projects/sandbox/reverse-synthid-tool/frontend && npm install && npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

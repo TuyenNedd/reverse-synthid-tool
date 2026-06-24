@@ -1,0 +1,7 @@
+{
+  "task_id": "task-build-synthid-tool",
+  "task_description": "Build a complete SynthID watermark detection and removal tool with: core Python library wrapping reverse-SynthID logic, Typer CLI with detect/remove commands, FastAPI async backend, and React+Vite frontend with drag-and-drop UI. Supports fast mode (V3 spectral subtraction) and full mode (V4 7-stage pipeline).",
+  "status": "in_progress",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004"],
+  "blocked_reason": null
+}

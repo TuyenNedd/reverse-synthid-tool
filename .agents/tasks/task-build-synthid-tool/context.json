@@ -1,0 +1,26 @@
+{
+  "project_type": "Python monorepo with core library, CLI (Typer), FastAPI backend, and React/Vite frontend",
+  "language": "Python (backend/core/CLI) + TypeScript/React (frontend)",
+  "build_system": "pip/pyproject.toml for Python packages, npm/Vite for frontend",
+  "test_framework": "pytest for Python, vitest for frontend (if tests are added)",
+  "build_command": "pip install -e . (core+CLI+backend) && cd frontend && npm install && npm run build",
+  "test_command": "pytest tests/ -v",
+  "verification_instructions": "1) pip install the core package in dev mode, 2) run 'synthid --help' to verify CLI, 3) run pytest, 4) start FastAPI with uvicorn, 5) cd frontend && npm run build to verify React app compiles",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "cd /projects/sandbox/reverse-synthid-tool && pip install -e '.[dev]' && cd frontend && npm install",
+  "environment_constraints": "Network available for package installation. Source reference repo at /projects/sandbox/reverse-SynthID (read-only). Target repo at /projects/sandbox/reverse-synthid-tool. torch/diffusers are heavy deps needed only for V4 full mode.",
+  "contribution_requirements": "Greenfield project - no existing contribution guidelines. Follow standard Python packaging conventions (pyproject.toml, src layout).",
+  "key_patterns": "Source repo uses: numpy arrays (HxWx3, uint8 or float64) for images, dataclass results (BypassResult, DetectionResult), SpectralCodebook/SpectralCodebookV4 for codebook loading, cv2 for image I/O. V3 bypass uses SynthIDBypass.bypass_v3(image_rgb, codebook, strength). V4 final uses SynthIDBypassV4.bypass_v4_final(image_rgb, codebook, strength='final'|'nuke', model=...). Detection uses RobustSynthIDExtractor.detect(image_path) or detect_array(image_rgb).",
+  "relevant_files": [
+    "/projects/sandbox/reverse-SynthID/src/extraction/robust_extractor.py",
+    "/projects/sandbox/reverse-SynthID/src/extraction/synthid_bypass.py",
+    "/projects/sandbox/reverse-SynthID/src/extraction/synthid_bypass_v4.py",
+    "/projects/sandbox/reverse-SynthID/src/extraction/vae_regen.py",
+    "/projects/sandbox/reverse-SynthID/src/extraction/watermark_remover.py",
+    "/projects/sandbox/reverse-SynthID/requirements.txt",
+    "/projects/sandbox/reverse-SynthID/artifacts/spectral_codebook_v3.npz",
+    "/projects/sandbox/reverse-SynthID/artifacts/spectral_codebook_v4.npz",
+    "/projects/sandbox/reverse-SynthID/artifacts/codebook/robust_codebook.pkl"
+  ],
+  "directory_structure": "Target structure: /projects/sandbox/reverse-synthid-tool/ with src/synthid_tool/ (core Python package), cli/ (Typer CLI), backend/ (FastAPI), frontend/ (React+Vite), artifacts/ (codebooks copied from source), tests/ (pytest)"
+}
