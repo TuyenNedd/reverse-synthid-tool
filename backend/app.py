@@ -7,8 +7,9 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-from backend.config import HOST, PORT
+from backend.config import HOST, PORT, PROJECT_ROOT
 from backend.routes import detect, jobs, remove
 
 
@@ -60,6 +61,12 @@ app.include_router(jobs.router)
 async def health_check():
     """Health check endpoint."""
     return {"status": "ok", "version": "0.1.0"}
+
+
+# Serve frontend static files if the dist directory exists (production/Docker)
+_frontend_dist = PROJECT_ROOT / "frontend" / "dist"
+if _frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")
 
 
 def start_server():
