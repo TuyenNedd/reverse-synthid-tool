@@ -19,6 +19,10 @@ A complete toolkit for detecting and removing SynthID watermarks from AI-generat
 git clone https://github.com/TuyenNedd/reverse-synthid-tool.git
 cd reverse-synthid-tool
 
+# Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+
 # Install the package
 pip install -e .
 
@@ -242,6 +246,10 @@ Environment variables for customization:
 ### Setup
 
 ```bash
+# Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+
 # Install Python package in dev mode
 pip install -e '.[dev]'
 
