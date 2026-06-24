@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import threading
 from pathlib import Path
 from typing import Optional
 
 from synthid_tool.config import V3_CODEBOOK_PATH, V4_CODEBOOK_PATH
 
-# Module-level caches for lazy-loaded codebooks
+# Module-level caches for lazy-loaded codebooks, protected by a lock
+# to avoid races when multiple threads hit get_v3/v4_codebook concurrently
+# (e.g. under gunicorn --threads or asyncio.to_thread).
+_cache_lock = threading.Lock()
 _v3_codebook = None
 _v4_codebook = None
 
@@ -24,6 +28,7 @@ def get_v3_codebook(path: Optional[str] = None):
     """
     global _v3_codebook
 
+    # Fast path: already loaded (no lock needed for read of immutable ref)
     if _v3_codebook is not None and path is None:
         return _v3_codebook
 
@@ -39,7 +44,12 @@ def get_v3_codebook(path: Optional[str] = None):
     cb.load(str(codebook_path))
 
     if path is None:
-        _v3_codebook = cb
+        with _cache_lock:
+            # Double-check inside lock to avoid redundant assignment
+            if _v3_codebook is None:
+                _v3_codebook = cb
+            else:
+                cb = _v3_codebook
     return cb
 
 
@@ -55,6 +65,7 @@ def get_v4_codebook(path: Optional[str] = None):
     """
     global _v4_codebook
 
+    # Fast path: already loaded (no lock needed for read of immutable ref)
     if _v4_codebook is not None and path is None:
         return _v4_codebook
 
@@ -70,5 +81,9 @@ def get_v4_codebook(path: Optional[str] = None):
     cb.load(str(codebook_path))
 
     if path is None:
-        _v4_codebook = cb
+        with _cache_lock:
+            if _v4_codebook is None:
+                _v4_codebook = cb
+            else:
+                cb = _v4_codebook
     return cb

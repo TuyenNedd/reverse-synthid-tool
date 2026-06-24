@@ -3,6 +3,13 @@
 This module implements a simple dict-based job store for tracking
 background processing jobs. The interface is designed to be easily
 swappable with Redis, a database, or a task queue backend later.
+
+NOTE (MVP limitation): This store is intentionally in-memory for the MVP.
+All job metadata is lost on process restart, and result files in .results/
+become orphaned. For production use, replace this with a Redis-backed or
+database-backed implementation that persists job state and implements TTL
+cleanup of result files. The public API (create_job, update_job, get_job)
+is designed so that swap can happen without changing routes.
 """
 
 from __future__ import annotations

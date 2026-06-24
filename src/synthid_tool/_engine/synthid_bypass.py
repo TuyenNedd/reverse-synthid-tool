@@ -105,6 +105,11 @@ class SynthIDBypass:
         disrupt the watermark but weak enough to preserve image quality.
         """
         if seed is not None:
+            # NOTE: This uses the legacy global RNG (inherited from the source
+            # research repo at reverse-SynthID). Under concurrent requests this
+            # can produce correlated outputs. A local np.random.Generator would
+            # be preferred, but changing it would alter the numerical output of
+            # the bypass pipeline which is validated against known-good results.
             np.random.seed(seed)
         
         noise = np.random.normal(0, sigma / 255.0, image.shape)

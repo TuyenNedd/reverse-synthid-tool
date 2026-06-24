@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import Header from './components/Header';
 import ImageDropzone from './components/ImageDropzone';
@@ -16,11 +16,21 @@ function App() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [detectionResult, setDetectionResult] = useState<DetectionResultType | null>(null);
   const [removalResult, setRemovalResult] = useState<string | null>(null);
+  const removalUrlRef = useRef<string | null>(null);
   const [isDetecting, setIsDetecting] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [mode, setMode] = useState<'fast' | 'full'>('fast');
   const [strength, setStrength] = useState('default');
   const [error, setError] = useState<string | null>(null);
+
+  // Revoke previous object URL when a new one is created or on unmount
+  useEffect(() => {
+    return () => {
+      if (removalUrlRef.current) {
+        URL.revokeObjectURL(removalUrlRef.current);
+      }
+    };
+  }, []);
 
   const handleImageDrop = useCallback((droppedFile: File) => {
     setFile(droppedFile);
@@ -55,7 +65,12 @@ function App() {
     setError(null);
     try {
       const blob = await removeWatermark(file, mode, strength === 'default' ? undefined : strength);
+      // Revoke previous object URL to avoid memory leak
+      if (removalUrlRef.current) {
+        URL.revokeObjectURL(removalUrlRef.current);
+      }
       const url = URL.createObjectURL(blob);
+      removalUrlRef.current = url;
       setRemovalResult(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Removal failed. Is the backend running?');
