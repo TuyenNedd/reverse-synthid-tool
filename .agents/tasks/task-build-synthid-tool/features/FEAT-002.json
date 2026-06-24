@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "CLI tool using Typer with 'detect' and 'remove' commands. The 'remove' command supports --mode fast/full flag.",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Create src/synthid_tool/cli.py - Main CLI module using Typer. App with two commands: 'detect' and 'remove'.",
     "Implement 'detect' command: accepts image path (positional arg), optional --codebook path, optional --output json/text format. Loads image, runs detector, prints results (confidence, is_watermarked, phase_match).",
