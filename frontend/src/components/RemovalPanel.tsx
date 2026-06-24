@@ -10,6 +10,24 @@ interface RemovalPanelProps {
   disabled: boolean;
 }
 
+// Strength options per mode. Fast mode uses V3 bypass which supports
+// gentle/moderate/aggressive/maximum. Full mode uses V4 which supports
+// final/nuke.
+const STRENGTH_OPTIONS: Record<string, { value: string; label: string }[]> = {
+  fast: [
+    { value: 'default', label: 'Default' },
+    { value: 'gentle', label: 'Gentle' },
+    { value: 'moderate', label: 'Moderate' },
+    { value: 'aggressive', label: 'Aggressive' },
+    { value: 'maximum', label: 'Maximum' },
+  ],
+  full: [
+    { value: 'default', label: 'Default' },
+    { value: 'final', label: 'Final' },
+    { value: 'nuke', label: 'Maximum (Nuke)' },
+  ],
+};
+
 export default function RemovalPanel({
   mode,
   onModeChange,
@@ -19,6 +37,16 @@ export default function RemovalPanel({
   isProcessing,
   disabled,
 }: RemovalPanelProps) {
+  const strengthOptions = STRENGTH_OPTIONS[mode] || STRENGTH_OPTIONS.fast;
+
+  // Reset strength to default when mode changes and current value is invalid
+  const handleModeChange = (newMode: 'fast' | 'full') => {
+    onModeChange(newMode);
+    const validValues = (STRENGTH_OPTIONS[newMode] || []).map((o) => o.value);
+    if (!validValues.includes(strength)) {
+      onStrengthChange('default');
+    }
+  };
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -43,7 +71,7 @@ export default function RemovalPanel({
               name="mode"
               value="fast"
               checked={mode === 'fast'}
-              onChange={() => onModeChange('fast')}
+              onChange={() => handleModeChange('fast')}
               className="mt-0.5"
             />
             <div>
@@ -65,7 +93,7 @@ export default function RemovalPanel({
               name="mode"
               value="full"
               checked={mode === 'full'}
-              onChange={() => onModeChange('full')}
+              onChange={() => handleModeChange('full')}
               className="mt-0.5"
             />
             <div>
@@ -88,11 +116,11 @@ export default function RemovalPanel({
           onChange={(e) => onStrengthChange(e.target.value)}
           className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
-          <option value="default">Default</option>
-          <option value="gentle">Gentle</option>
-          <option value="moderate">Moderate</option>
-          <option value="aggressive">Aggressive</option>
-          <option value="nuke">Maximum (Nuke)</option>
+          {strengthOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
         </select>
       </div>
 

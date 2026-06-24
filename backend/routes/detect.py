@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
+from backend.config import MAX_UPLOAD_SIZE
 from backend.services import run_detection
 
 router = APIRouter()
@@ -32,6 +33,12 @@ async def detect_watermark(file: UploadFile = File(...)):
     contents = await file.read()
     if not contents:
         raise HTTPException(status_code=400, detail="Empty file")
+
+    if len(contents) > MAX_UPLOAD_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum upload size is {MAX_UPLOAD_SIZE // (1024 * 1024)} MB",
+        )
 
     try:
         result = run_detection(contents)

@@ -13,19 +13,6 @@ export interface DetectionResult {
   details: Record<string, unknown>;
 }
 
-export interface RemovalJobResponse {
-  job_id: string;
-  status: string;
-}
-
-export interface JobStatus {
-  job_id: string;
-  status: string;
-  created_at: string;
-  completed_at: string | null;
-  result_filename: string | null;
-}
-
 export async function detectWatermark(file: File): Promise<DetectionResult> {
   const formData = new FormData();
   formData.append('file', file);
@@ -48,35 +35,6 @@ export async function removeWatermark(
   if (model) formData.append('model', model);
   const response = await api.post('/api/remove/sync', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    responseType: 'blob',
-  });
-  return response.data;
-}
-
-export async function removeWatermarkAsync(
-  file: File,
-  mode: 'fast' | 'full' = 'fast',
-  strength?: string,
-  model?: string
-): Promise<RemovalJobResponse> {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('mode', mode);
-  if (strength) formData.append('strength', strength);
-  if (model) formData.append('model', model);
-  const response = await api.post<RemovalJobResponse>('/api/remove', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return response.data;
-}
-
-export async function getJobStatus(jobId: string): Promise<JobStatus> {
-  const response = await api.get<JobStatus>(`/api/jobs/${jobId}`);
-  return response.data;
-}
-
-export async function getJobResult(jobId: string): Promise<Blob> {
-  const response = await api.get(`/api/jobs/${jobId}/result`, {
     responseType: 'blob',
   });
   return response.data;
