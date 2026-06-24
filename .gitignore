@@ -30,3 +30,7 @@ Thumbs.db
 
 # Backend results
 .results/
+
+# Node
+node_modules/
+frontend/dist/
