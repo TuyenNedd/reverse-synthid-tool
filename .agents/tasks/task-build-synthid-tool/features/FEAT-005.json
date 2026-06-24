@@ -2,7 +2,7 @@
   "id": "FEAT-005",
   "type": "feat",
   "description": "Add Docker support (Dockerfile + docker-compose.yml), comprehensive README.md, and CI/CD workflow (.github/workflows/).",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Create multi-stage Dockerfile: stage 1 builds frontend (node:20-alpine), stage 2 installs Python deps and serves API + static frontend.",
     "Create docker-compose.yml for easy local development.",
@@ -17,5 +17,5 @@
   ],
   "verification": [],
   "blocked_reason": null,
-  "findings": null
+  "findings": "All 46 pytest tests pass after adding static file serving to backend. Frontend builds cleanly. Docker build not tested locally (no Docker daemon in this environment) but Dockerfile syntax is valid."
 }
