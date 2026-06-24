@@ -1,0 +1,21 @@
+{
+  "id": "FEAT-005",
+  "type": "feat",
+  "description": "Add Docker support (Dockerfile + docker-compose.yml), comprehensive README.md, and CI/CD workflow (.github/workflows/).",
+  "status": "in_progress",
+  "steps": [
+    "Create multi-stage Dockerfile: stage 1 builds frontend (node:20-alpine), stage 2 installs Python deps and serves API + static frontend.",
+    "Create docker-compose.yml for easy local development.",
+    "Create comprehensive README.md with overview, features, quickstart (CLI/web/Docker), API docs, architecture, and contributing guide.",
+    "Create .github/workflows/ci.yml with lint, test, and Docker build steps."
+  ],
+  "acceptance_criteria": [
+    "Dockerfile exists and uses multi-stage build",
+    "docker-compose.yml exists and references the Dockerfile",
+    "README.md is comprehensive with all documented sections",
+    ".github/workflows/ci.yml exists with lint, test, and docker build jobs"
+  ],
+  "verification": [],
+  "blocked_reason": null,
+  "findings": null
+}
