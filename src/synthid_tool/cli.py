@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import sys
 import time
 from pathlib import Path
 from typing import Optional
@@ -97,7 +96,6 @@ def remove(
 ) -> None:
     """Remove SynthID watermark from an image."""
     import cv2
-    import numpy as np
 
     # Validate input
     in_path = Path(input_path)
