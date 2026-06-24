@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "feat",
   "description": "FastAPI backend with async processing endpoints for detect and remove. Architecture supports future queue-based scaling (async job pattern with job IDs and status polling).",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Create backend/ directory with backend/__init__.py",
     "Create backend/app.py - FastAPI application with CORS middleware (allow all origins for dev). Include lifespan handler that pre-loads codebooks on startup for fast first-request response.",
@@ -28,5 +28,5 @@
     "cd /projects/sandbox/reverse-synthid-tool && pytest tests/test_backend.py -v"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "All 17 backend tests pass (44 total including core and CLI). Python 3.9 required using Optional[str] from typing instead of str | None syntax in Pydantic models. FastAPI 0.128.8 with Pydantic v2 works well. The backend package is discovered via setuptools packages.find with where=['src', '.'] and include=['synthid_tool*', 'backend*']. httpx installed as dev dependency for TestClient. The async removal uses asyncio.to_thread for background processing."
 }
