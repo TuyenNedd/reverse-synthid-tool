@@ -24,7 +24,6 @@ VAE's built-in tiled encode/decode for images above ~1024px so we don't OOM.
 
 from __future__ import annotations
 
-import os
 from typing import Optional, Tuple
 
 import numpy as np

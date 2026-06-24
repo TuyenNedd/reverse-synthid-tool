@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from backend.app import app
-from backend.job_store import JobState, clear_jobs, create_job, get_job, update_job
+from backend.job_store import JobState, clear_jobs, create_job, update_job
 from synthid_tool.models import DetectionResult, RemovalResult
 
 

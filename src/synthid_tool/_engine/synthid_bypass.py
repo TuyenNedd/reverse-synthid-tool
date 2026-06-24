@@ -17,7 +17,6 @@ Based on insights from:
 """
 
 import os
-import sys
 import io
 import numpy as np
 import cv2
@@ -1468,11 +1467,14 @@ class SynthIDBypass:
         _go = 0.299*oq[:,:,0] + 0.587*oq[:,:,1] + 0.114*oq[:,:,2]
         _gm = 0.299*cq[:,:,0] + 0.587*cq[:,:,1] + 0.114*cq[:,:,2]
         _b = 8
-        _rc = (_go.shape[0]//_b)*_b; _cc = (_go.shape[1]//_b)*_b
+        _rc = (_go.shape[0]//_b)*_b
+        _cc = (_go.shape[1]//_b)*_b
         _ao = _go[:_rc,:_cc].reshape(_rc//_b,_b,_cc//_b,_b).transpose(0,2,1,3).reshape(-1,_b,_b)
         _am = _gm[:_rc,:_cc].reshape(_rc//_b,_b,_cc//_b,_b).transpose(0,2,1,3).reshape(-1,_b,_b)
-        _ma=_ao.mean(axis=(1,2)); _mb=_am.mean(axis=(1,2))
-        _va=_ao.var(axis=(1,2));  _vb=_am.var(axis=(1,2))
+        _ma=_ao.mean(axis=(1,2))
+        _mb=_am.mean(axis=(1,2))
+        _va=_ao.var(axis=(1,2))
+        _vb=_am.var(axis=(1,2))
         _cv=((_ao-_ma[:,None,None])*(_am-_mb[:,None,None])).mean(axis=(1,2))
         ssim = float(np.mean(
             (2*_ma*_mb+1e-4)*(2*_cv+9e-4) /
