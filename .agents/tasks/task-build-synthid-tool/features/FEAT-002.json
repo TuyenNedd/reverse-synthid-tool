@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "CLI tool using Typer with 'detect' and 'remove' commands. The 'remove' command supports --mode fast/full flag.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Create src/synthid_tool/cli.py - Main CLI module using Typer. App with two commands: 'detect' and 'remove'.",
     "Implement 'detect' command: accepts image path (positional arg), optional --codebook path, optional --output json/text format. Loads image, runs detector, prints results (confidence, is_watermarked, phase_match).",
@@ -23,5 +23,5 @@
     "cd /projects/sandbox/reverse-synthid-tool && pytest tests/test_cli.py -v"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Typer 0.23.2 and Rich 15.0.0 installed successfully. The CLI imports must be at module level (not deferred inside command functions) for unit tests with mock patching to work correctly. All 27 tests (10 CLI + 17 core) pass. The entry point 'synthid' is available after pip install -e . and shows both detect and remove commands."
 }
