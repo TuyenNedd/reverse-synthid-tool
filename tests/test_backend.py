@@ -181,6 +181,42 @@ class TestRemoveSyncEndpoint:
 
         assert response.status_code == 400
 
+    @patch("backend.routes.remove.run_removal")
+    def test_remove_sync_nuke_fast_normalizes_to_maximum(
+        self, mock_remove, client, dummy_png_bytes
+    ):
+        """Test that 'nuke' strength in fast mode is normalized to 'maximum'."""
+        mock_remove.return_value = _make_removal_result()
+
+        response = client.post(
+            "/api/remove/sync",
+            files={"file": ("test.png", dummy_png_bytes, "image/png")},
+            data={"mode": "fast", "strength": "nuke"},
+        )
+
+        assert response.status_code == 200
+        mock_remove.assert_called_once_with(
+            dummy_png_bytes, "fast", "maximum", None
+        )
+
+    @patch("backend.routes.remove.run_removal")
+    def test_remove_sync_invalid_strength_normalizes_to_none(
+        self, mock_remove, client, dummy_png_bytes
+    ):
+        """Test that an invalid strength is normalized to None (engine default)."""
+        mock_remove.return_value = _make_removal_result()
+
+        response = client.post(
+            "/api/remove/sync",
+            files={"file": ("test.png", dummy_png_bytes, "image/png")},
+            data={"mode": "fast", "strength": "banana"},
+        )
+
+        assert response.status_code == 200
+        mock_remove.assert_called_once_with(
+            dummy_png_bytes, "fast", None, None
+        )
+
 
 class TestRemoveAsyncEndpoint:
     """Tests for POST /api/remove (async)."""

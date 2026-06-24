@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import os
+
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from backend.config import MAX_UPLOAD_SIZE
+from backend.config import ALLOWED_EXTENSIONS, MAX_UPLOAD_SIZE
 from backend.services import run_detection
 
 router = APIRouter()
@@ -29,6 +31,13 @@ async def detect_watermark(file: UploadFile = File(...)):
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file extension '{ext}'. Allowed: {sorted(ALLOWED_EXTENSIONS)}",
+        )
 
     contents = await file.read()
     if not contents:
