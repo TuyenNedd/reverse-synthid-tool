@@ -2,7 +2,7 @@
   "id": "FEAT-001",
   "type": "feat",
   "description": "Core Python library - wrap detect + remove logic from the source repo into a clean, importable Python package with proper packaging (pyproject.toml). Includes the core engine that both CLI and web backend will use.",
-  "status": "in_progress",
+  "status": "completed",
   "steps": [
     "Create project root structure: pyproject.toml with package metadata, dependencies (numpy, scipy, opencv-python, PyWavelets, scikit-learn, Pillow, typer, fastapi, uvicorn, python-multipart), optional deps group [full] for torch/diffusers/safetensors/accelerate. Use src layout with synthid_tool/ package.",
     "Create src/synthid_tool/__init__.py exporting the public API: detect(), remove_fast(), remove_full(), DetectionResult, RemovalResult",
@@ -28,5 +28,5 @@
     "cd /projects/sandbox/reverse-synthid-tool && pytest tests/test_core.py -v"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Environment has Python 3.9.25 (adjusted requires-python from >=3.10 to >=3.9). opencv-python requires libGL.so.1 which is missing in this environment; switched to opencv-python-headless in pyproject.toml. All 17 tests pass. Package installs and imports cleanly. V3 codebook (spectral_codebook_v3.npz) loads via zipfile LZMA format successfully."
 }
