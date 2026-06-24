@@ -2,7 +2,7 @@
   "id": "FEAT-004",
   "type": "feat",
   "description": "React frontend with Vite - drag & drop image upload, detection results display, and watermark removal with mode selection (fast/full). Clean modern UI.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "Initialize Vite React+TypeScript project in frontend/ directory: npm create vite@latest frontend -- --template react-ts. Install dependencies: axios, react-dropzone, lucide-react (icons), tailwindcss + postcss + autoprefixer for styling.",
     "Configure Tailwind CSS: create tailwind.config.js and postcss.config.js, update index.css with Tailwind directives.",
@@ -29,5 +29,5 @@
     "cd /projects/sandbox/reverse-synthid-tool/frontend && npm install && npm run build"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Node.js was not pre-installed; installed nodejs 20.x from nodesource. Used Tailwind CSS v4 with @tailwindcss/vite plugin (CSS-based config via @import 'tailwindcss' instead of v3 tailwind.config.js). Build produces dist/ with ~18KB CSS and ~311KB JS bundle."
 }
