@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+import os
 from typing import Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
@@ -12,7 +13,7 @@ from PIL import Image
 from pydantic import BaseModel
 
 from backend import job_store
-from backend.config import MAX_UPLOAD_SIZE, RESULTS_DIR
+from backend.config import ALLOWED_EXTENSIONS, MAX_UPLOAD_SIZE, RESULTS_DIR
 from backend.job_store import JobState
 from backend.services import run_removal
 
@@ -65,6 +66,13 @@ async def remove_watermark_async(
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file extension '{ext}'. Allowed: {sorted(ALLOWED_EXTENSIONS)}",
+        )
 
     contents = await file.read()
     if not contents:
@@ -145,6 +153,13 @@ async def remove_watermark_sync(
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file extension '{ext}'. Allowed: {sorted(ALLOWED_EXTENSIONS)}",
+        )
 
     contents = await file.read()
     if not contents:

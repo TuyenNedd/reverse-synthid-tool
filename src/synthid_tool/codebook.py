@@ -34,23 +34,25 @@ def get_v3_codebook(path: Optional[str] = None):
 
     from synthid_tool._engine.synthid_bypass import SpectralCodebook
 
-    cb = SpectralCodebook()
     codebook_path = Path(path) if path else V3_CODEBOOK_PATH
     if not codebook_path.exists():
         raise FileNotFoundError(
             f"V3 codebook not found at {codebook_path}. "
             "Set SYNTHID_ARTIFACTS_DIR or provide an explicit path."
         )
-    cb.load(str(codebook_path))
 
     if path is None:
         with _cache_lock:
-            # Double-check inside lock to avoid redundant assignment
+            # Double-check inside lock to avoid redundant loads
             if _v3_codebook is None:
+                cb = SpectralCodebook()
+                cb.load(str(codebook_path))
                 _v3_codebook = cb
-            else:
-                cb = _v3_codebook
-    return cb
+            return _v3_codebook
+    else:
+        cb = SpectralCodebook()
+        cb.load(str(codebook_path))
+        return cb
 
 
 def get_v4_codebook(path: Optional[str] = None):
@@ -71,19 +73,22 @@ def get_v4_codebook(path: Optional[str] = None):
 
     from synthid_tool._engine.synthid_bypass_v4 import SpectralCodebookV4
 
-    cb = SpectralCodebookV4()
     codebook_path = Path(path) if path else V4_CODEBOOK_PATH
     if not codebook_path.exists():
         raise FileNotFoundError(
             f"V4 codebook not found at {codebook_path}. "
             "Set SYNTHID_ARTIFACTS_DIR or provide an explicit path."
         )
-    cb.load(str(codebook_path))
 
     if path is None:
         with _cache_lock:
+            # Double-check inside lock to avoid redundant loads
             if _v4_codebook is None:
+                cb = SpectralCodebookV4()
+                cb.load(str(codebook_path))
                 _v4_codebook = cb
-            else:
-                cb = _v4_codebook
-    return cb
+            return _v4_codebook
+    else:
+        cb = SpectralCodebookV4()
+        cb.load(str(codebook_path))
+        return cb
