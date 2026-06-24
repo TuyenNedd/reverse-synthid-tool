@@ -14,13 +14,12 @@ This provides significantly more robust detection than single-scale approaches.
 import os
 import numpy as np
 import cv2
-from scipy.fft import fft2, ifft2, fftshift, ifftshift
+from scipy.fft import fft2, ifft2, fftshift
 from scipy import ndimage
-from scipy.stats import pearsonr
 from collections import defaultdict
 import pywt
 import pickle
-from typing import Optional, Dict, List, Tuple, Union
+from typing import Optional, Dict, List, Tuple
 from dataclasses import dataclass
 from sklearn.decomposition import PCA, FastICA
 
@@ -116,9 +115,9 @@ class RobustSynthIDExtractor:
                         self.codebook = pickle.load(f)
                     return
             raise FileNotFoundError(
-                f"Cannot load .npz as pickle codebook. "
-                f"Provide a .pkl file instead, e.g.: "
-                f"--detector artifacts/codebook/robust_codebook.pkl"
+                "Cannot load .npz as pickle codebook. "
+                "Provide a .pkl file instead, e.g.: "
+                "--detector artifacts/codebook/robust_codebook.pkl"
             )
         with open(path, 'rb') as f:
             self.codebook = pickle.load(f)
@@ -493,12 +492,12 @@ class RobustSynthIDExtractor:
         # Apply ICA
         ica = FastICA(n_components=n_components, random_state=42, max_iter=500)
         try:
-            sources = ica.fit_transform(noise_matrix)
+            _sources = ica.fit_transform(noise_matrix)
             components = ica.components_
         except Exception:
             # Fall back to PCA if ICA fails to converge
             pca = PCA(n_components=n_components)
-            sources = pca.fit_transform(noise_matrix)
+            _sources = pca.fit_transform(noise_matrix)
             components = pca.components_
         
         # Find the most consistent component (watermark)
@@ -718,7 +717,7 @@ class RobustSynthIDExtractor:
         all_matches = []
         for sr in set_results.values():
             all_matches.append(sr['phase_match'])
-        avg_phase_match = float(np.mean(all_matches)) if all_matches else 0.0
+        _avg_phase_match = float(np.mean(all_matches)) if all_matches else 0.0
 
         # ------------------------------------------------------------------
         # Noise-domain carrier-vs-random ratio (supporting signal)

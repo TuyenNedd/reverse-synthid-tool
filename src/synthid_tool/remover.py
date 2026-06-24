@@ -9,7 +9,6 @@ import numpy as np
 from synthid_tool.config import (
     DEFAULT_FAST_STRENGTH,
     DEFAULT_FULL_STRENGTH,
-    DEFAULT_VAE_MODEL,
 )
 from synthid_tool.models import RemovalResult
 
