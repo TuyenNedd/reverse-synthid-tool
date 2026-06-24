@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "feat",
   "description": "FastAPI backend with async processing endpoints for detect and remove. Architecture supports future queue-based scaling (async job pattern with job IDs and status polling).",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Create backend/ directory with backend/__init__.py",
     "Create backend/app.py - FastAPI application with CORS middleware (allow all origins for dev). Include lifespan handler that pre-loads codebooks on startup for fast first-request response.",

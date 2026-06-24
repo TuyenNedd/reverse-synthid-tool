@@ -18,10 +18,14 @@ dependencies = [
     "Pillow>=8.0.0",
     "typer>=0.9.0",
     "rich>=13.0.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.22.0",
+    "python-multipart>=0.0.6",
 ]
 
 [project.scripts]
 synthid = "synthid_tool.cli:app"
+synthid-server = "backend.app:start_server"
 
 [project.optional-dependencies]
 full = [
@@ -33,10 +37,12 @@ full = [
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
+    "httpx>=0.24.0",
 ]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "."]
+include = ["synthid_tool*", "backend*"]
 
 [tool.setuptools.package-data]
 synthid_tool = ["py.typed"]
