@@ -30,7 +30,6 @@ Design principles:
 from __future__ import annotations
 
 import os
-import sys
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
@@ -756,7 +755,8 @@ class SpectralCodebookV4:
 
         # Write with LZMA compression via zipfile (stdlib; no extra deps).
         # LZMA achieves ~24 MB vs ~42 MB with zlib on this sparse dataset.
-        import zipfile as _zf, io as _io
+        import zipfile as _zf
+        import io as _io
         with _zf.ZipFile(path, "w", compression=_zf.ZIP_LZMA) as zfile:
             for k, v in data.items():
                 buf = _io.BytesIO()
@@ -789,7 +789,6 @@ class SpectralCodebookV4:
             model, h_str, w_str = entry.split("|")
             h, w = int(h_str), int(w_str)
             pfx = f"{model}|{h}x{w}/"
-            rw = w // 2 + 1
 
             # --- decode consensus coherence (uint8 in both formats) --------
             cons_r = d[pfx + "cons"].astype(np.float64) / 255.0

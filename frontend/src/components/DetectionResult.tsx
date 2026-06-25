@@ -1,14 +1,48 @@
-import { ShieldCheck, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, ShieldQuestion, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
-import type { DetectionResult as DetectionResultType } from '../api/client';
+import type { DetectionResult as DetectionResultType, DetectionStatus } from '../api/client';
 
 interface DetectionResultProps {
   result: DetectionResultType;
 }
 
+type StatusStyle = {
+  label: string;
+  badge: string;
+  bar: string;
+  Icon: typeof ShieldCheck;
+};
+
+const STATUS_STYLES: Record<DetectionStatus, StatusStyle> = {
+  clean: {
+    label: 'Clean',
+    badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    bar: 'bg-green-500',
+    Icon: ShieldCheck,
+  },
+  uncertain: {
+    label: 'Uncertain',
+    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    bar: 'bg-amber-500',
+    Icon: ShieldQuestion,
+  },
+  watermarked: {
+    label: 'Watermarked',
+    badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    bar: 'bg-red-500',
+    Icon: ShieldAlert,
+  },
+};
+
 export default function DetectionResult({ result }: DetectionResultProps) {
   const [showDetails, setShowDetails] = useState(false);
   const confidencePercent = Math.round(result.confidence * 100);
+
+  // Fall back to deriving status from is_watermarked for older API responses.
+  const status: DetectionStatus =
+    result.status ?? (result.is_watermarked ? 'watermarked' : 'clean');
+  const style = STATUS_STYLES[status] ?? STATUS_STYLES.clean;
+  const StatusIcon = style.Icon;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -18,17 +52,12 @@ export default function DetectionResult({ result }: DetectionResultProps) {
 
       {/* Status Badge */}
       <div className="flex items-center gap-3 mb-4">
-        {result.is_watermarked ? (
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-            <ShieldAlert size={16} />
-            Watermarked
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-            <ShieldCheck size={16} />
-            Clean
-          </span>
-        )}
+        <span
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${style.badge}`}
+        >
+          <StatusIcon size={16} />
+          {style.label}
+        </span>
       </div>
 
       {/* Confidence Bar */}
@@ -41,9 +70,7 @@ export default function DetectionResult({ result }: DetectionResultProps) {
         </div>
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
           <div
-            className={`h-2.5 rounded-full transition-all ${
-              result.is_watermarked ? 'bg-red-500' : 'bg-green-500'
-            }`}
+            className={`h-2.5 rounded-full transition-all ${style.bar}`}
             style={{ width: `${confidencePercent}%` }}
           />
         </div>
