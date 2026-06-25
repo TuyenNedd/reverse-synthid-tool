@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import sys
 import time
 from pathlib import Path
 from typing import Optional
@@ -49,24 +48,25 @@ def detect(
     if output_format == "json":
         data = {
             "is_watermarked": result.is_watermarked,
+            "status": result.status,
             "confidence": result.confidence,
             "phase_match": result.phase_match,
             "details": result.details,
         }
         console.print_json(json.dumps(data))
     else:
-        # Colored confidence: green if <0.5, red if >=0.5
-        if result.confidence >= 0.5:
-            conf_color = "red"
-        else:
-            conf_color = "green"
-
-        watermark_status = (
-            "[red]YES[/red]" if result.is_watermarked else "[green]NO[/green]"
+        # Three-way status -> colour + label.
+        status_styles = {
+            "clean": ("green", "CLEAN"),
+            "uncertain": ("yellow", "UNCERTAIN"),
+            "watermarked": ("red", "WATERMARKED"),
+        }
+        conf_color, status_label = status_styles.get(
+            result.status, ("green", result.status.upper())
         )
 
         lines = [
-            f"Watermarked: {watermark_status}",
+            f"Status:      [{conf_color}]{status_label}[/{conf_color}]",
             f"Confidence:  [{conf_color}]{result.confidence:.4f}[/{conf_color}]",
             f"Phase Match: {result.phase_match:.4f}",
             f"Time:        {elapsed:.2f}s",
@@ -97,7 +97,6 @@ def remove(
 ) -> None:
     """Remove SynthID watermark from an image."""
     import cv2
-    import numpy as np
 
     # Validate input
     in_path = Path(input_path)

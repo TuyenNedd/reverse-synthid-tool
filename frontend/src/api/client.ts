@@ -6,8 +6,11 @@ const api = axios.create({
   baseURL: API_URL,
 });
 
+export type DetectionStatus = 'clean' | 'uncertain' | 'watermarked';
+
 export interface DetectionResult {
   is_watermarked: boolean;
+  status: DetectionStatus;
   confidence: number;
   phase_match: number;
   details: Record<string, unknown>;

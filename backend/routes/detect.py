@@ -17,6 +17,7 @@ class DetectionResponse(BaseModel):
     """Response schema for detection endpoint."""
 
     is_watermarked: bool
+    status: str = "clean"
     confidence: float
     phase_match: float
     details: dict = {}
@@ -60,6 +61,7 @@ async def detect_watermark(file: UploadFile = File(...)):
 
     return DetectionResponse(
         is_watermarked=result.is_watermarked,
+        status=getattr(result, "status", "clean"),
         confidence=result.confidence,
         phase_match=result.phase_match,
         details=result.details,

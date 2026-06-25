@@ -14,15 +14,42 @@ This provides significantly more robust detection than single-scale approaches.
 import os
 import numpy as np
 import cv2
-from scipy.fft import fft2, ifft2, fftshift, ifftshift
+from scipy.fft import fft2, ifft2, fftshift
 from scipy import ndimage
-from scipy.stats import pearsonr
 from collections import defaultdict
 import pywt
 import pickle
-from typing import Optional, Dict, List, Tuple, Union
+from typing import Optional, Dict, List, Tuple
 from dataclasses import dataclass
 from sklearn.decomposition import PCA, FastICA
+
+
+# Three-way classification statuses (string constants for JSON friendliness).
+STATUS_CLEAN = "clean"
+STATUS_UNCERTAIN = "uncertain"
+STATUS_WATERMARKED = "watermarked"
+
+# Phase-match band thresholds, calibrated on 291 watermarked + 16 clean images.
+#   Clean baseline:        0.47-0.53 (max observed 0.71)
+#   Confident watermarked: 0.92-0.99
+# The gray zone in between is reported as "uncertain" rather than being
+# force-classified as clean.
+CLEAN_PHASE_MAX = 0.60       # below this -> clean
+WATERMARK_PHASE_MIN = 0.78   # at/above this -> confident watermark
+
+
+def classify_phase_match(phase_match: float) -> str:
+    """Map a best phase-match value onto the 3-way classification.
+
+    - ``phase_match < CLEAN_PHASE_MAX``            -> ``"clean"``
+    - ``CLEAN_PHASE_MAX <= pm < WATERMARK_PHASE_MIN`` -> ``"uncertain"``
+    - ``phase_match >= WATERMARK_PHASE_MIN``        -> ``"watermarked"``
+    """
+    if phase_match >= WATERMARK_PHASE_MIN:
+        return STATUS_WATERMARKED
+    if phase_match >= CLEAN_PHASE_MAX:
+        return STATUS_UNCERTAIN
+    return STATUS_CLEAN
 
 
 @dataclass
@@ -36,6 +63,7 @@ class DetectionResult:
     carrier_strength: float
     multi_scale_consistency: float
     details: Dict
+    status: str = STATUS_CLEAN
 
 
 class RobustSynthIDExtractor:
@@ -116,9 +144,9 @@ class RobustSynthIDExtractor:
                         self.codebook = pickle.load(f)
                     return
             raise FileNotFoundError(
-                f"Cannot load .npz as pickle codebook. "
-                f"Provide a .pkl file instead, e.g.: "
-                f"--detector artifacts/codebook/robust_codebook.pkl"
+                "Cannot load .npz as pickle codebook. "
+                "Provide a .pkl file instead, e.g.: "
+                "--detector artifacts/codebook/robust_codebook.pkl"
             )
         with open(path, 'rb') as f:
             self.codebook = pickle.load(f)
@@ -493,12 +521,12 @@ class RobustSynthIDExtractor:
         # Apply ICA
         ica = FastICA(n_components=n_components, random_state=42, max_iter=500)
         try:
-            sources = ica.fit_transform(noise_matrix)
+            ica.fit_transform(noise_matrix)
             components = ica.components_
         except Exception:
             # Fall back to PCA if ICA fails to converge
             pca = PCA(n_components=n_components)
-            sources = pca.fit_transform(noise_matrix)
+            pca.fit_transform(noise_matrix)
             components = pca.components_
         
         # Find the most consistent component (watermark)
@@ -642,6 +670,45 @@ class RobustSynthIDExtractor:
     # DETECTION
     # ================================================================
     
+    @staticmethod
+    def _letterbox_to_square(image: np.ndarray, target_size: int) -> np.ndarray:
+        """Resize ``image`` to a ``target_size`` x ``target_size`` square while
+        preserving aspect ratio.
+
+        The longer side is scaled to ``target_size`` and the shorter side is
+        centre-padded with a neutral fill (the image mean) so that no edge is
+        introduced between content and padding. For square inputs the scale is
+        identical on both axes and no padding is added, so the output matches
+        ``cv2.resize(image, (target_size, target_size))`` exactly.
+        """
+        h, w = image.shape[:2]
+        if h == 0 or w == 0:
+            raise ValueError("Cannot resize an image with a zero dimension")
+
+        # Square (or already target-sized) inputs: behave exactly as before.
+        if h == w:
+            return cv2.resize(image, (target_size, target_size))
+
+        scale = target_size / float(max(h, w))
+        new_w = max(1, min(target_size, int(round(w * scale))))
+        new_h = max(1, min(target_size, int(round(h * scale))))
+        resized = cv2.resize(image, (new_w, new_h))
+
+        # Neutral fill = image mean, computed per-channel where applicable.
+        if resized.ndim == 3:
+            channels = resized.shape[2]
+            fill = np.mean(image.reshape(-1, channels), axis=0)
+            canvas = np.empty((target_size, target_size, channels), dtype=resized.dtype)
+            canvas[:] = fill.astype(resized.dtype)
+        else:
+            fill = float(np.mean(image))
+            canvas = np.full((target_size, target_size), fill, dtype=resized.dtype)
+
+        y0 = (target_size - new_h) // 2
+        x0 = (target_size - new_w) // 2
+        canvas[y0:y0 + new_h, x0:x0 + new_w] = resized
+        return canvas
+
     def detect(self, image_path: str) -> DetectionResult:
         """Detect SynthID watermark in an image file."""
         img = cv2.imread(image_path)
@@ -669,7 +736,14 @@ class RobustSynthIDExtractor:
             raise ValueError("No codebook loaded. Call extract_codebook() or load_codebook() first.")
 
         target_size = self.codebook['image_size']
-        img_resized = cv2.resize(image, (target_size, target_size))
+        # Aspect-ratio-preserving resize (letterbox): the longer side is scaled
+        # to ``target_size`` and the result is centre-padded to a square with a
+        # neutral fill. Squishing non-square images into a square shifts the
+        # SynthID carrier frequencies (they are resolution/aspect-ratio
+        # dependent) and tanks the phase match. For square inputs this reduces
+        # exactly to the previous ``cv2.resize(image, (target_size, target_size))``
+        # so existing behaviour is preserved.
+        img_resized = self._letterbox_to_square(image, target_size)
         center = target_size // 2
 
         # ------------------------------------------------------------------
@@ -769,14 +843,18 @@ class RobustSynthIDExtractor:
         #   WM:     0.92-0.99 (black/nbpro 0.99, white 0.92)
         #   non-WM: 0.47-0.53 (max observed 0.71)
         #
-        # Threshold at 0.80: well above non-WM max (0.71) with margin,
-        # well below WM min (0.92 avg for white).
+        # Three-way classification (see classify_phase_match):
+        #   clean       : phase < 0.60
+        #   uncertain   : 0.60 <= phase < 0.78 (elevated but not confident)
+        #   watermarked : phase >= 0.78
         #
         # Supporting: cvr_noise adds confidence for dark images.
         # ==================================================================
 
-        # Phase score: sigmoid centered at 0.78 (between 0.71 max non-WM and 0.92 min WM)
-        phase_score = float(1.0 / (1.0 + np.exp(-20.0 * (best_phase_match - 0.78))))
+        # Phase score: gentler sigmoid so the gray zone (0.60-0.78) is not
+        # collapsed to near-zero confidence. Centered at 0.70 with moderate
+        # steepness, watermarked phase (>=0.92) still saturates to ~1.0.
+        phase_score = float(1.0 / (1.0 + np.exp(-12.0 * (best_phase_match - 0.70))))
 
         # CVR noise score: supporting signal
         cvr_score = float(1.0 / (1.0 + np.exp(-2.0 * (cvr_noise - 2.0))))
@@ -784,7 +862,11 @@ class RobustSynthIDExtractor:
         # Combined confidence — phase-dominant
         confidence = float(min(1.0, 0.80 * phase_score + 0.20 * cvr_score))
 
-        is_watermarked = confidence > 0.50
+        # Three-way classification driven by the calibrated phase-match bands.
+        # ``is_watermarked`` stays True only for the confident "watermarked"
+        # case for backward compatibility.
+        status = classify_phase_match(best_phase_match)
+        is_watermarked = status == STATUS_WATERMARKED
 
         return DetectionResult(
             is_watermarked=bool(is_watermarked),
@@ -794,13 +876,16 @@ class RobustSynthIDExtractor:
             structure_ratio=structure_ratio,
             carrier_strength=avg_carrier_strength,
             multi_scale_consistency=multi_scale_consistency,
+            status=status,
             details={
                 'best_set': best_set,
                 'best_phase_match': best_phase_match,
+                'avg_phase_match': avg_phase_match,
                 'set_results': set_results,
                 'cvr_noise': cvr_noise,
                 'phase_score': phase_score,
                 'cvr_score': cvr_score,
+                'status': status,
             }
         )
 
@@ -915,6 +1000,7 @@ class RobustSynthIDExtractor:
         phase_score = float(1.0 / (1.0 + np.exp(-18.0 * (phase_match - 0.52))))
         confidence = float(min(1.0, phase_score))
         is_watermarked = confidence > 0.50
+        status = classify_phase_match(phase_match)
 
         return DetectionResult(
             is_watermarked=bool(is_watermarked),
@@ -926,6 +1012,7 @@ class RobustSynthIDExtractor:
             multi_scale_consistency=float(
                 np.std(per_channel_scores) if len(per_channel_scores) > 1 else 0.0,
             ),
+            status=status,
             details={
                 'v4': True,
                 'profile_key': f'{key[0]}/{key[1]}x{key[2]}',

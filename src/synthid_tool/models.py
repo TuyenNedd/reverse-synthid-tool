@@ -16,13 +16,33 @@ class ProcessingMode(Enum):
     FULL = "full"
 
 
+class DetectionStatus(str, Enum):
+    """Three-way watermark classification.
+
+    - ``CLEAN``: phase/confidence clearly in the non-watermarked range.
+    - ``UNCERTAIN``: signal is elevated above the clean baseline but below the
+      confident-watermark threshold (the "gray zone").
+    - ``WATERMARKED``: confident watermark detection.
+    """
+
+    CLEAN = "clean"
+    UNCERTAIN = "uncertain"
+    WATERMARKED = "watermarked"
+
+
 @dataclass
 class DetectionResult:
-    """Result of watermark detection."""
+    """Result of watermark detection.
+
+    ``is_watermarked`` is kept for backward compatibility and is True only for
+    the confident ``WATERMARKED`` case. Use ``status`` for the full three-way
+    classification (clean / uncertain / watermarked).
+    """
 
     is_watermarked: bool
     confidence: float
     phase_match: float
+    status: str = DetectionStatus.CLEAN.value
     details: Dict = field(default_factory=dict)
 
 

@@ -66,5 +66,6 @@ def detect(
         is_watermarked=engine_result.is_watermarked,
         confidence=engine_result.confidence,
         phase_match=engine_result.phase_match,
+        status=getattr(engine_result, "status", "clean"),
         details=engine_result.details,
     )

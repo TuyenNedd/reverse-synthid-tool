@@ -21,7 +21,7 @@ import cv2
 from PIL import Image
 from scipy.ndimage import zoom
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict
 
 
 @dataclass
@@ -602,12 +602,12 @@ Examples:
             print(f"  SSIM: {result.ssim:.4f}")
             
             if result.detection_before:
-                print(f"\n  Before:")
+                print("\n  Before:")
                 print(f"    Watermarked: {result.detection_before['is_watermarked']}")
                 print(f"    Phase Match: {result.detection_before['phase_match']:.4f}")
             
             if result.detection_after:
-                print(f"\n  After:")
+                print("\n  After:")
                 print(f"    Watermarked: {result.detection_after['is_watermarked']}")
                 print(f"    Phase Match: {result.detection_after['phase_match']:.4f}")
                 
