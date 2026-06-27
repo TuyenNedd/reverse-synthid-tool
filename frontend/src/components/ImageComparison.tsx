@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Download } from 'lucide-react';
+import ImageViewer from './ImageViewer';
 
 interface ImageComparisonProps {
   originalUrl: string;
@@ -17,6 +19,8 @@ function buildDownloadName(originalFileName?: string | null): string {
   return `${baseName}-cleaned.png`;
 }
 
+type ViewerImage = { src: string; alt: string } | null;
+
 export default function ImageComparison({
   originalUrl,
   cleanedUrl,
@@ -24,6 +28,7 @@ export default function ImageComparison({
   originalFileName,
 }: ImageComparisonProps) {
   const downloadName = buildDownloadName(originalFileName);
+  const [viewerImage, setViewerImage] = useState<ViewerImage>(null);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -44,13 +49,19 @@ export default function ImageComparison({
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
             Original
           </p>
-          <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            onClick={() => setViewerImage({ src: originalUrl, alt: 'Original' })}
+            aria-label="View original image"
+            title="Click to enlarge"
+            className="block w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <img
               src={originalUrl}
               alt="Original"
               className="w-full h-auto object-contain max-h-80"
             />
-          </div>
+          </button>
         </div>
 
         {/* Cleaned */}
@@ -70,15 +81,28 @@ export default function ImageComparison({
               Download
             </a>
           </div>
-          <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            onClick={() => setViewerImage({ src: cleanedUrl, alt: 'Cleaned' })}
+            aria-label="View cleaned image"
+            title="Click to enlarge"
+            className="block w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <img
               src={cleanedUrl}
               alt="Cleaned"
               className="w-full h-auto object-contain max-h-80"
             />
-          </div>
+          </button>
         </div>
       </div>
+
+      <ImageViewer
+        isOpen={viewerImage !== null}
+        src={viewerImage?.src ?? ''}
+        alt={viewerImage?.alt ?? ''}
+        onClose={() => setViewerImage(null)}
+      />
     </div>
   );
 }
