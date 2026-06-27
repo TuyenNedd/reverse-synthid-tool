@@ -39,12 +39,15 @@ def dummy_png_bytes():
     return buffer.getvalue()
 
 
-def _make_detection_result(watermarked=True, confidence=0.85):
+def _make_detection_result(watermarked=True, confidence=0.85, status=None):
     """Create a mock DetectionResult."""
+    if status is None:
+        status = "watermarked" if watermarked else "clean"
     return DetectionResult(
         is_watermarked=watermarked,
         confidence=confidence,
         phase_match=0.72,
+        status=status,
         details={"method": "robust"},
     )
 
@@ -87,6 +90,7 @@ class TestDetectEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert data["is_watermarked"] is True
+        assert data["status"] == "watermarked"
         assert data["confidence"] == 0.85
         assert data["phase_match"] == 0.72
         assert "details" in data
@@ -106,7 +110,24 @@ class TestDetectEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert data["is_watermarked"] is False
+        assert data["status"] == "clean"
         assert data["confidence"] == 0.12
+
+    @patch("backend.routes.detect.run_detection")
+    def test_detect_uncertain(self, mock_detect, client, dummy_png_bytes):
+        mock_detect.return_value = _make_detection_result(
+            watermarked=False, confidence=0.25, status="uncertain"
+        )
+
+        response = client.post(
+            "/api/detect",
+            files={"file": ("test.png", dummy_png_bytes, "image/png")},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["is_watermarked"] is False
+        assert data["status"] == "uncertain"
 
     def test_detect_no_file(self, client):
         response = client.post("/api/detect")

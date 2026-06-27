@@ -58,7 +58,8 @@ def test_detect_text_output(mock_detect):
     mock_detect.return_value = DetectionResult(
         is_watermarked=True,
         confidence=0.87,
-        phase_match=0.75,
+        phase_match=0.85,
+        status="watermarked",
         details={"method": "spectral"},
     )
 
@@ -74,6 +75,33 @@ def test_detect_text_output(mock_detect):
         result = runner.invoke(app, ["detect", tmp_path])
         assert result.exit_code == 0
         assert "0.87" in result.output or "0.8700" in result.output
+        assert "WATERMARKED" in result.output
+        mock_detect.assert_called_once()
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+
+@patch("synthid_tool.cli.run_detect")
+def test_detect_uncertain_text_output(mock_detect):
+    """Test detect command renders the Uncertain status."""
+    mock_detect.return_value = DetectionResult(
+        is_watermarked=False,
+        confidence=0.25,
+        phase_match=0.6093,
+        status="uncertain",
+        details={},
+    )
+
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        import cv2
+        img = np.zeros((64, 64, 3), dtype=np.uint8)
+        cv2.imwrite(f.name, img)
+        tmp_path = f.name
+
+    try:
+        result = runner.invoke(app, ["detect", tmp_path])
+        assert result.exit_code == 0
+        assert "UNCERTAIN" in result.output
         mock_detect.assert_called_once()
     finally:
         Path(tmp_path).unlink(missing_ok=True)
@@ -86,6 +114,7 @@ def test_detect_json_output(mock_detect):
         is_watermarked=False,
         confidence=0.23,
         phase_match=0.15,
+        status="clean",
         details={},
     )
 
@@ -101,6 +130,8 @@ def test_detect_json_output(mock_detect):
         # The JSON output should be parseable
         # Rich adds markup, try to find the JSON content
         assert "is_watermarked" in result.output
+        assert "status" in result.output
+        assert "clean" in result.output.lower()
         assert "false" in result.output.lower()
     finally:
         Path(tmp_path).unlink(missing_ok=True)

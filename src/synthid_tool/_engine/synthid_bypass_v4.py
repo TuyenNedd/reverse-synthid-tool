@@ -789,7 +789,6 @@ class SpectralCodebookV4:
             model, h_str, w_str = entry.split("|")
             h, w = int(h_str), int(w_str)
             pfx = f"{model}|{h}x{w}/"
-            _rw = w // 2 + 1
 
             # --- decode consensus coherence (uint8 in both formats) --------
             cons_r = d[pfx + "cons"].astype(np.float64) / 255.0
