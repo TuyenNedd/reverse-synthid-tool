@@ -147,6 +147,7 @@ function App() {
             <ImageComparison
               originalUrl={imagePreview}
               cleanedUrl={removalResult}
+              originalFileName={file?.name ?? null}
             />
           )}
         </main>
